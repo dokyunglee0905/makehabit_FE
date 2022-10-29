@@ -5,8 +5,6 @@ import { apis } from "../../shared/Api";
 
 // actions
 const ADD_POST = "ADD_POST";
-// const EDIT_POST = "EDIT_POST";
-// const DELETE_POST = "DELETE_POST";
 const DETAIL_POST = "DETAIL_POST";
 const IMG_EXIST = "IMG_EXIST";
 //참여하기
@@ -22,8 +20,6 @@ const LIKE_COLLECT = "LIKE_COLLECT";
 
 //챌린지수정
 const EDIT_POST = "EDIT_POST";
-
-// const GET_DISLIKE = "GET_DISLIKE";
 
 const addPost = createAction(ADD_POST, (challengeId: any) => ({ challengeId }));
 const imgExist = createAction(IMG_EXIST, (imgExist) => ({ imgExist }));
@@ -50,11 +46,43 @@ const likeCollection = createAction(LIKE_COLLECT, (collect) => ({ collect }));
 //상세수정
 const editPost = createAction(EDIT_POST, (editpost) => ({ editpost }));
 
+interface LikeCollection {
+  challengeId: string;
+  isLike: boolean;
+  participants: number;
+  startAt: Date;
+  status: number;
+  thumbnail: string;
+  title: string;
+  _id: string;
+}
+type State = {
+  isUpload?: boolean;
+  challengeId?: string;
+  post?: string[];
+  is_loaded?: boolean;
+  imgExist?: boolean;
+  isLike?: any[];
+  likeCollection?: LikeCollection[];
+  editpost?: string[];
+  isLoading?: boolean;
+};
+interface ActionPayload {
+  challengeId?: string;
+  imgExist?: boolean;
+  isLike?: any[];
+  post?: string[];
+  isLoading?: boolean;
+  editpost?: string[];
+  collect?: any;
+}
+type Action = { type: "SET_ITEMS"; payload: ActionPayload };
+
 // initialState
 const initialState = {
   imgExist: false,
   page: null,
-  challengId: "",
+  challengeId: "",
   post: [],
   isLike: [],
   isUpload: false,
@@ -122,9 +150,7 @@ const uploadImageDB = (challengeId, imgUrl, challengeTitle, comment) => {
   return function (dispatch, useState, { history }) {
     apis
       .confirm(challengeId, imgUrl, challengeTitle, comment)
-      .then((response) => {
-        // console.log("이미지 업로드");
-      })
+      .then((response) => {})
       .catch(function (error) {
         console.log(error);
       });
@@ -158,10 +184,6 @@ const editPostDB = (
 ) => {
   return function (dispatch, useState, { history }) {
     // apis
-    //   // .imageUpload(thumbnail)
-
-    //   .then(function (response) {
-    //     console.log("확인", response);
     console.log(
       "확인",
       challengeId,
@@ -179,23 +201,16 @@ const editPostDB = (
         title,
         category,
         thumbnail,
-        // response.data.imgUrl,
         startAt,
         content,
         howtoContent,
       )
       .then((response) => {
-        // console.log("게시물 수정", response.date);
         dispatch(editPost(response.data.challengeId));
       })
       .catch(function (error) {
         console.log(error);
       });
-    // });
-    // .catch((error) => {
-    //   console.log(error);
-    //   return;
-    // });
   };
 };
 
@@ -229,19 +244,14 @@ const joinCancelDB = (challengeId) => {
       .catch(function (error) {
         console.log(error);
       });
-    // .then(() => {
-    //   dispatch(getDetailPostDB(challengeId));
-    // });
   };
 };
 
 const getLikeDB = () => {
   return function (dispatch, getState, { history }) {
-    // console.log("GETLIKEINNNNN");
     apis
       .getLike()
       .then((response) => {
-        // console.log("getLike! 성공!", response.data);
         dispatch(likeCollection(response.data));
         dispatch(getLike(response.data.challenges));
       })
@@ -254,13 +264,11 @@ const getLikeDB = () => {
 //찜하기
 const likeDB = (challengeId) => {
   return function (dispatch, getState, { history }) {
-    // console.log("좋아요");
     apis
       .like(challengeId)
       .then((response) => {
         dispatch(getLikeDB());
         dispatch(addLike(challengeId));
-        // dispatch(getDetailPostDB(challengeId));
       })
       .catch(function (error) {
         console.log(error);
@@ -271,82 +279,61 @@ const likeDB = (challengeId) => {
 //찜하기 취소하기
 const dislikeDB = (challengeId) => {
   return function (dispatch, getState, { history }) {
-    // console.log("싫어요");
     apis
       .dislike(challengeId)
       .then((response) => {
-        // console.log("싫어요");
         dispatch(getLikeDB());
         dispatch(deleteLike(challengeId));
       })
       .catch(function (error) {
         console.log(error);
       });
-    // .then(() => {
-    //   dispatch(getDetailPostDB(challengeId));
-    // });
   };
 };
 
 // redux
 export default handleActions(
   {
-    // [SET_TAB]: (state, action) =>
-    //   produce(state, (draft) => {
-    //     // console.log(action.payload.page);
-    //     draft.page = action.payload.page;
-    //   }),
-    [ADD_POST]: (state, action) =>
+    [ADD_POST]: (state: State, action: Action) =>
       produce(state, (draft) => {
         draft.isUpload = true;
         draft.challengeId = action.payload.challengeId;
       }),
-    [DETAIL_POST]: (state, action) =>
+    [DETAIL_POST]: (state: State, action: Action) =>
       produce(state, (draft) => {
         draft.post = action.payload.post;
         draft.is_loaded = true;
-        // draft.post.comments = action.payload.comments;
       }),
     [EDIT_JOIN]: (state, action) => produce(state, (draft) => {}),
     [EDIT_LIKE]: (state, action) => produce(state, (draft) => {}),
-    [IMG_EXIST]: (state, action) =>
+    [IMG_EXIST]: (state, action: Action) =>
       produce(state, (draft) => {
         draft.imgExist = action.payload.imgExist;
       }),
-    [GET_LIKE]: (state, action) =>
+    [GET_LIKE]: (state, action: Action) =>
       produce(state, (draft) => {
-        // console.log(
-        //   "GETLIKE!",
-        //   action.payload.isLike.map((e) => e.challengeId)
-        // );
-        // const likeList = getState().main.category_list.filter(
-        //   (e) => e.isLike === true
-        // );
         draft.isLike.push(action.payload.isLike.map((e, i) => e.challengeId));
       }),
     [ADD_LIKE]: (state, action) =>
       produce(state, (draft) => {
-        // console.log("ADD_LIKE", action.payload.isLike);
         draft.isLike.push(action.payload.isLike);
       }),
     [DELETE_LIKE]: (state, action) =>
       produce(state, (draft) => {
-        // console.log("DELETE_LIKE", action.payload.isLike);
         draft.isLike.filter((e) => e.isLike !== action.payload.isLike);
       }),
-    [SET_LOAD]: (state, action) =>
+    [SET_LOAD]: (state: State, action: Action) =>
       produce(state, (draft) => {
         draft.isLoading = action.payload.isLoading;
       }),
-    [LIKE_COLLECT]: (state, action) =>
+    [LIKE_COLLECT]: (state: State, action: Action) =>
       produce(state, (draft) => {
-        // console.log("I'mmmm INNNNN", action.payload);
+        console.log("123123", action.payload, typeof action.payload.collect);
         draft.likeCollection = action.payload.collect.challenges;
       }),
 
-    [EDIT_POST]: (state, action) =>
+    [EDIT_POST]: (state: State, action: Action) =>
       produce(state, (draft) => {
-        // console.log("I'mmmm INNNNN", draft.editpost);
         draft.editpost = action.payload.editpost;
       }),
   },
